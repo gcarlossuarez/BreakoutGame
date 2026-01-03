@@ -221,6 +221,11 @@ open Browser.Dom
 open Browser.Types
 open Fable.Core
 
+type InputState =
+    | Idle
+    | MovingLeft
+    | MovingRight
+
 let canvas =
     document.getElementById("game") :?> HTMLCanvasElement
 
@@ -228,7 +233,11 @@ let ctx =
     canvas.getContext_2d()
 
 let mutable score = 0
+let mutable score_multiplier = 0
+let multiplier = 5
 let mutable lives = 3
+let mutable inputState = Idle
+
 
 let mutable paddleX = 200.0
 let paddleWidth = 80.0
@@ -245,15 +254,30 @@ let mutable rightPressed = false
 
 document.addEventListener("keydown", fun e ->
     let ke = e :?> KeyboardEvent
-    if ke.key = "a" then leftPressed <- true
-    if ke.key = "d" then rightPressed <- true
+    let key = ke.key.ToLower()
+    match key with
+    | "a" -> 
+        leftPressed <- true
+        inputState <- MovingLeft
+    | "d" ->
+        rightPressed <- true
+        inputState <- MovingRight
+    | _ -> ()
 )
 
 document.addEventListener("keyup", fun e ->
     let ke = e :?> KeyboardEvent
-    if ke.key = "a" then leftPressed <- false
-    if ke.key = "d" then rightPressed <- false
+    let key = ke.key.ToLower()
+    match key with
+    | "a" ->
+        leftPressed <- false
+        if not rightPressed then inputState <- Idle
+    | "d" ->
+        rightPressed <- false
+        if not leftPressed then inputState <- Idle
+    | _ -> ()
 )
+
 
 let drawBall() =
     ctx.beginPath()
@@ -265,9 +289,17 @@ let drawBall() =
 let drawPaddle() =
     ctx.beginPath()
     ctx.rect(paddleX, 280., paddleWidth, paddleHeight)
-    ctx.fillStyle <- U3.Case1 "black"
+
+    let color =
+        match inputState with
+        | Idle -> "black"
+        | MovingLeft -> "blue"
+        | MovingRight -> "green"
+
+    ctx.fillStyle <- U3.Case1 color
     ctx.fill()
     ctx.closePath()
+
 
 let drawHUD() =
     ctx.font <- "16px Arial"
@@ -296,6 +328,15 @@ let rec update (_: float) =
         if ballX > paddleX && ballX < paddleX + paddleWidth then
             dy <- -dy
             score <- score + 1
+            if score % multiplier = 0 then
+                score_multiplier <- score_multiplier + 1
+
+                // Aumentar velocidad, haciendo el juego más difícil
+                dx <- dx + (if dx > 0. then 1. else -1.)
+                dy <- dy + (if dy > 0. then 1. else -1.)
+
+                if lives < 3 then // recupera vida
+                    lives <- lives + 1
         else
             lives <- lives - 1
 
