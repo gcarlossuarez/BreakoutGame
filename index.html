@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fable Breakout</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #eee;
+    }
+    canvas {
+      border: 1px solid #333;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="500" height="300"></canvas>
+
+  <!-- OJO: el JS lo generará Fable en la carpeta output -->
+  <script type="module" src="/output/Program.js"></script>
+</body>
+</html>
